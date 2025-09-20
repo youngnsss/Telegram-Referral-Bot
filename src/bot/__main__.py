@@ -6,6 +6,9 @@ from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackQueryHandler,Defaults,CallbackContext,ConversationHandler
 from telegram.ext.dispatcher import run_async, DispatcherHandlerStop
 from telegram.utils.helpers import escape_markdown
+from bot.modules.sql.settings_sql import engine, Base, Settings
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from bot.modules import ALL_MODULES
 from bot import(
@@ -56,8 +59,19 @@ def error_handler(update, context):
 
     context.bot.send_message(chat_id=LOG_CHANNEL, text=message, parse_mode=ParseMode.HTML)
 
+def seed_contest():
+    # Ensure tables exist
+    Base.metadata.create_all(engine)
+    # Seed default contest row if missing
+    with Session(engine) as session:
+        exists = session.execute(select(Settings)).first()
+        if not exists:
+            session.add(Settings(contest=True))
+            session.commit()
+
 
 def main():
+    seed_contest()
     dispatcher.add_error_handler(error_handler)
     LOGGER.info("Using long polling.")
     updater.start_polling(timeout=15, read_latency=4)
@@ -65,4 +79,5 @@ def main():
     
 if __name__ == "__main__":
     LOGGER.info("Successfully loaded modules: " + str(ALL_MODULES))
+
     main()
