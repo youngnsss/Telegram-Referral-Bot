@@ -1,9 +1,26 @@
+import os
+
 class Config(object):
     LOGGER = True
-    DATABASE_URI ='postgresql://postgres:24111999@localhost:5432/groupref'
-    LOG_CHANNEL = -1001410504549
-    SUDO_USERS=[431108047,972650691,1773748036,1508254655,1776321910,1669215589,1853258941]
-    BOT_TOKEN='1393190801:AAFSRCGOQAajiyY7SE5kxTDTcaPDecOQAjs'
-    WORKERS = 8
-    SUPPORT_CHANNEL='NanoDogecoin'
-    
+
+    # Use Railway’s provided DATABASE_URL environment variable
+    DATABASE_URI = os.environ.get('DATABASE_URL')
+
+    # Telegram channel ID for error logs
+    LOG_CHANNEL = int(os.environ.get('LOG_CHANNEL', '-1001410504549'))
+
+    # List of Telegram user IDs (admins)
+    SUDO_USERS = []
+    sudo_env = os.environ.get('SUDO_USERS')
+    if sudo_env:
+        # Expecting a comma-separated list like "12345,67890"
+        SUDO_USERS = [int(uid) for uid in sudo_env.split(',') if uid]
+
+    # Your Bot token from @BotFather
+    BOT_TOKEN = os.environ.get('BOT_TOKEN')
+
+    # Number of worker processes
+    WORKERS = int(os.environ.get('WORKERS', '8'))
+
+    # Support channel username (without @)
+    SUPPORT_CHANNEL = os.environ.get('SUPPORT_CHANNEL', '')
